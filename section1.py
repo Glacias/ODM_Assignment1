@@ -3,15 +3,15 @@ import numpy as np
 def F(x, u, dim):
 	return (min(max(x[0]+u[0], 0), dim[0]-1), min(max(x[1]+u[1], 0), dim[1]-1))
 
-def R(g, x, u):
-	return g[F(x, u, g.shape)]
+def R(g, x_next):
+	return g[x_next]
 
 def f_det(x, u, dim):
 	return F(x, u, dim)
 
 def f_stoch(x, u, dim):
 	if np.random.rand() < 0.5:
-		return f_det(x, u, dim)
+		return F(x, u, dim)
 
 	else:
 		return (0,0)
@@ -19,15 +19,14 @@ def f_stoch(x, u, dim):
 def policy_rand(U):
 	return U[np.random.randint(len(U))]
 
-def get_next_rand(g, U, x, t):
-	u = policy_rand(U)
-	x_next = f_det(x, u, g.shape)
-	print("(x_" + str(t) + " = " + str(x) +
-		", u_" + str(t) + " = " + str(u) +
-		", r_" + str(t) + " = " + str(R(g, x, u)) +
-		", x_" + str(t+1) + " = " + str(x_next) + ")")
+def policy_right(U):
+	return (0, 1)
 
-	return x_next
+def get_next(g, U, x, policy, f_transition):
+	u = policy(U)
+	x_next = f_transition(x, u, g.shape)
+
+	return u, x_next
 
 if __name__ == '__main__':
 
@@ -42,4 +41,9 @@ if __name__ == '__main__':
 
 	print("Starting at " + str(x))
 	for t in range(10):
-		x = get_next_rand(g, U, x, t)
+		u, x_next = get_next(g, U, x, policy_right, f_stoch)
+		print("(x_" + str(t) + " = " + str(x) +
+			", u_" + str(t) + " = " + str(u) +
+			", r_" + str(t) + " = " + str(R(g, x_next)) +
+			", x_" + str(t+1) + " = " + str(x_next) + ")")
+		x = x_next
