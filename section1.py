@@ -22,6 +22,9 @@ def policy_rand(U):
 def policy_right(U):
 	return (0, 1)
 
+def policy_up(U):
+	return (-1, 0)
+
 def get_next(g, U, x, policy, f_transition):
 	u = policy(U)
 	x_next = f_transition(x, u, g.shape)
