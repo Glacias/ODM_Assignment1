@@ -16,17 +16,40 @@ def f_stoch(x, u, dim):
 	else:
 		return (0,0)
 
-def policy_rand(U):
-	return U[np.random.randint(len(U))]
 
-def policy_right(U):
-	return (0, 1)
+class cls_policy():
+	def choose_action(self, x):
+		pass
 
-def policy_up(U):
-	return (-1, 0)
+class policy_cst(cls_policy):
+	def __init__(self, U, direction):
+		self.U = U
 
-def get_next(g, U, x, policy, f_transition):
-	u = policy(U)
+		if direction == "down":
+			self.action = U[0]
+
+		elif direction == "up":
+			self.action = U[1]
+
+		elif direction == "right":
+			self.action = U[2]
+
+		else:
+			self.action = U[3]
+
+	def choose_action(self, x):
+		return self.action
+
+
+class policy_rand(cls_policy):
+	def __init__(self, U):
+		self.U = U
+
+	def choose_action(self, x):
+		return U[np.random.randint(len(U))]
+
+def get_next(g, U, x, my_policy, f_transition):
+	u = my_policy.choose_action(x)
 	x_next = f_transition(x, u, g.shape)
 
 	return u, x_next
@@ -42,9 +65,13 @@ if __name__ == '__main__':
 	U = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 	x = (3,0)
 
+	#my_policy = policy_cst(U, "right")
+	my_policy = policy_rand(U)
+	f_transition = f_det
+
 	print("Starting at " + str(x))
 	for t in range(10):
-		u, x_next = get_next(g, U, x, policy_right, f_stoch)
+		u, x_next = get_next(g, U, x, my_policy, f_transition)
 		print("(x_" + str(t) + " = " + str(x) +
 			", u_" + str(t) + " = " + str(u) +
 			", r_" + str(t) + " = " + str(R(g, x_next)) +

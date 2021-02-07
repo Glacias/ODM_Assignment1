@@ -41,7 +41,7 @@ def Q_val(g, u, x, gamma, Q_prev, p_func, r_func):
 	return Q_val
 
 
-def compute_Q_dyna(g, U, policy, gamma, N, p_func, r_func):
+def compute_Q_dyna(g, U, gamma, N, p_func, r_func):
 	Q = np.zeros(g.shape + (len(U),))
 	print(Q.shape)
 
@@ -54,9 +54,16 @@ def compute_Q_dyna(g, U, policy, gamma, N, p_func, r_func):
 
 	return Q
 
-def policy_Q(U, Q, x):
-	#print(Q[(1,1)])
-	return U[np.argmax(Q[x])]
+def compute_N_bis(gamma, Br, thresh):
+	return math.ceil(math.log(thresh * (1-gamma)**2 / (2*Br) , gamma))
+
+class policy_set(cls_policy):
+	def __init__(self, U, pol_mat):
+		self.U = U
+		self.pol_mat = pol_mat
+
+	def choose_action(self, x):
+		return U[self.pol_mat[x[0], x[1]]]
 
 if __name__ == '__main__':
 
@@ -70,18 +77,18 @@ if __name__ == '__main__':
 
 	x = (3,0)
 
-	# N computation from section2, should not be used here
+
 	Br = g.max()
-	thresh = 1
-	N = compute_N(gamma, Br, thresh)
-
+	thresh = 0.1
+	N = compute_N_bis(gamma, Br, thresh)
 	print("Chosen N : " + str(N))
+	print()
 
-	Q = compute_Q_dyna(g, U, policy_up, gamma, N, p_det, r_det)
 
+	Q = compute_Q_dyna(g, U, gamma, N, p_det, r_det)
+	print("Q_N function (u, x) :")
 	print(np.moveaxis(Q, 2, 0))
-
-	#print(policy_Q(U, Q, (1,1)))
+	print()
 
 	print("policy :")
 	policy_mat = np.zeros(g.shape, dtype=np.int8)
@@ -92,6 +99,11 @@ if __name__ == '__main__':
 			policy_mat[k,l] = np.argmax(Q[k,l])
 			print(instruction_arrow[policy_mat[k,l]], end="")
 		print()
+	print()
 
+	policy_Q = policy_set(U, policy_mat)
+	expected_return = expected_ret_det
 
-	#print(policy_mat)
+	J_opt = compute_J_dyna(g, U, policy_Q, gamma, N, expected_return)
+	print("J of the new policy :")
+	print(J_opt)
