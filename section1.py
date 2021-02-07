@@ -54,7 +54,7 @@ class policy_rand(cls_policy):
 		self.U = U
 
 	def choose_action(self, x):
-		return U[np.random.randint(len(U))]
+		return self.U[np.random.randint(len(self.U))]
 
 # apply a policy to find action and get the outgoing new state from f_transition
 def get_next(g, U, x, my_policy, f_transition):

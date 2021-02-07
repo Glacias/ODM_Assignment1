@@ -3,45 +3,63 @@ import numpy as np
 from section1 import *
 from section2 import *
 
-# p(x_next | x, u) of the equivalent MDP of the domain deterministic
-def p_det(x_next, x, u, shape):
-	if f_det(x, u, shape) == x_next:
-		return 1
+# define pattern for MDP equivalent
+class MDP_eq():
+	# p(x_next | x, u)
+	def p_transi(self, x_next, x, u):
+		pass
 
-	else:
-		return 0
+	# r(x, u)
+	def r_state_action(self, x, u):
+		pass
 
-# p(x_next | x, u) of the equivalent MDP of the domain stochastic
-def p_stoch(x_next, x, u, shape):
-	if x_next == (0,0):
-		return 0.5
+class MDP_eq_det(MDP_eq):
+		def __init__(self, g):
+			self.g = g
 
-	elif x_next == f_det(x, u, shape):
-		return 0.5
+		# p(x_next | x, u) of the equivalent MDP of the domain deterministic
+		def p_transi(self, x_next, x, u):
+			if f_det(x, u, self.g.shape) == x_next:
+				return 1
 
-	else:
-		return 0
+			else:
+				return 0
 
-# r(x, u) of the equivalent MDP of the domain deterministic
-def r_det(x, u, g):
-	return g[f_det(x, u, g.shape)]
+		# r(x, u) of the equivalent MDP of the domain deterministic
+		def r_state_action(self, x, u):
+			return self.g[f_det(x, u, self.g.shape)]
 
-# r(x, u) of the equivalent MDP of the domain stochastic
-def r_stoch(x, u, g):
-	return 0.5 * g[f_det(x, u, g.shape)] + 0.5 * g[(0,0)]
+class MDP_eq_stoch(MDP_eq):
+		def __init__(self, g):
+			self.g = g
+
+		# p(x_next | x, u) of the equivalent MDP of the domain stochastic
+		def p_transi(self, x_next, x, u):
+			if x_next == (0,0):
+				return 0.5
+
+			elif x_next == f_det(x, u, self.g.shape):
+				return 0.5
+
+			else:
+				return 0
+
+		# r(x, u) of the equivalent MDP of the domain stochastic
+		def r_state_action(self, x, u):
+			return 0.5 * self.g[f_det(x, u, self.g.shape)] + 0.5 * self.g[(0,0)]
 
 # compute the value of Q for state x and action u,
 # for t steps given all the value of Q for t-1 steps,
 # for a given equivalent MDP with p(x_next | x, u) and r(x, u)
-def Q_val(g, u, x, gamma, Q_prev, p_func, r_func):
+def Q_val(g, u, x, gamma, Q_prev, my_MDP_eq):
 
 	# reward for going to the given state
-	Q_val = r_func(x, u, g)
+	Q_val = my_MDP_eq.r_state_action(x, u)
 
 	# consider all possible next states
 	for k in range(Q_prev.shape[0]):
 		for l in range(Q_prev.shape[1]):
-			prob = p_func((k,l), x, u, Q_prev.shape[:2])
+			prob = my_MDP_eq.p_transi((k,l), x, u)
 			# if action u can lead to that state (k, l),
 			# consider the best possible reward afterward for t-1 steps
 			if prob != 0:
@@ -51,7 +69,7 @@ def Q_val(g, u, x, gamma, Q_prev, p_func, r_func):
 
 # compute the values of Q(x,u) for all states x and actions u with N steps,
 # for a given equivalent MDP with p(x_next | x, u) and r(x, u)
-def compute_Q_dyna(g, U, gamma, N, p_func, r_func, get_min_N=False):
+def compute_Q_dyna(g, U, gamma, N, my_MDP_eq, get_min_N=False):
 	Q = np.zeros(g.shape + (len(U),))
 
 	# variables to look for smallest expected N
@@ -67,7 +85,7 @@ def compute_Q_dyna(g, U, gamma, N, p_func, r_func, get_min_N=False):
 		for k in range(Q.shape[0]):
 			for l in range(Q.shape[1]):
 				for u_idx in range(len(U)):
-					Q[k, l, u_idx] = Q_val(g, U[u_idx], (k, l), gamma, Q_prev, p_func, r_func)
+					Q[k, l, u_idx] = Q_val(g, U[u_idx], (k, l), gamma, Q_prev, my_MDP_eq)
 
 		if get_min_N:
 			# check if the policy has changed
@@ -127,7 +145,9 @@ if __name__ == '__main__':
 
 	# compute Q_N for all states x and actions u
 	get_min_N = True
-	Q, min_N = compute_Q_dyna(g, U, gamma, max_N, p_det, r_det, get_min_N)
+	my_MDP_eq = MDP_eq_det(g)
+
+	Q, min_N = compute_Q_dyna(g, U, gamma, max_N, my_MDP_eq, get_min_N)
 	print("Q_N function (u, x) :")
 	# move axis such that Q is displayed by action u on the first axis
 	print(np.moveaxis(Q, 2, 0))
