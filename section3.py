@@ -51,8 +51,14 @@ def Q_val(g, u, x, gamma, Q_prev, p_func, r_func):
 
 # compute the values of Q(x,u) for all states x and actions u with N steps,
 # for a given equivalent MDP with p(x_next | x, u) and r(x, u)
-def compute_Q_dyna(g, U, gamma, N, p_func, r_func):
+def compute_Q_dyna(g, U, gamma, N, p_func, r_func, get_min_N=False):
 	Q = np.zeros(g.shape + (len(U),))
+
+	# variables to look for smallest expected N
+	min_N = N
+	if get_min_N:
+		curr_pol_mat = np.zeros(Q.shape[:2], dtype=np.int8)
+
 
 	# for each step (dynamic ascending programming)
 	for t in range(1, N):
@@ -63,7 +69,14 @@ def compute_Q_dyna(g, U, gamma, N, p_func, r_func):
 				for u_idx in range(len(U)):
 					Q[k, l, u_idx] = Q_val(g, U[u_idx], (k, l), gamma, Q_prev, p_func, r_func)
 
-	return Q
+		if get_min_N:
+			# check if the policy has changed
+			new_pol_mat = get_optimal_pol_mat(Q)
+			if (new_pol_mat != curr_pol_mat).any():
+				min_N = t
+				curr_pol_mat = new_pol_mat
+
+	return Q, min_N
 
 def get_optimal_pol_mat(Q):
 
@@ -74,6 +87,8 @@ def get_optimal_pol_mat(Q):
 		for l in range(Q.shape[1]):
 			# best action is the one with the greater Q
 			policy_mat[k,l] = np.argmax(Q[k,l])
+
+	return policy_mat
 
 # compute N such that the bound on the suboptimality
 # for the approximation (over an horizon limited to N steps) of the optimal policy
@@ -103,15 +118,16 @@ if __name__ == '__main__':
 	gamma = 0.99
 	x = (3,0)
 
-	# compute appropriate N
+	# compute N expected large enough
 	Br = g.max()
 	thresh = 0.1
-	N = compute_N_bis(gamma, Br, thresh)
-	print("Chosen N : " + str(N))
+	max_N = compute_N_bis(gamma, Br, thresh)
+	print("Chosen N : " + str(max_N))
 	print()
 
 	# compute Q_N for all states x and actions u
-	Q = compute_Q_dyna(g, U, gamma, N, p_det, r_det)
+	get_min_N = True
+	Q, min_N = compute_Q_dyna(g, U, gamma, max_N, p_det, r_det, get_min_N)
 	print("Q_N function (u, x) :")
 	# move axis such that Q is displayed by action u on the first axis
 	print(np.moveaxis(Q, 2, 0))
@@ -128,6 +144,9 @@ if __name__ == '__main__':
 		for l in range(policy_mat.shape[1]):
 			print(instruction_arrow[policy_mat[k,l]], end="")
 		print()
+
+	if get_min_N:
+		print("with N = " + str(min_N) + " as smallest N without changed afterward")
 	print()
 
 	# set the optimal policy and the kind of case considered (deterministic/stochastic)
@@ -135,6 +154,8 @@ if __name__ == '__main__':
 	expected_return = expected_ret_det
 
 	# compute the expected returns (J)
-	J_opt = compute_J_dyna(g, U, policy_Q, gamma, N, expected_return)
-	print("J of the new policy :")
+	J_opt = compute_J_dyna(g, U, policy_Q, gamma, min_N, expected_return)
+	print("J_N of the new policy :")
+	if get_min_N:
+		print("(with the smallest N = " + str(min_N) + ")")
 	print(J_opt)
