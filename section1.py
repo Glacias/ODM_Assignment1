@@ -64,6 +64,8 @@ def get_next(g, U, x, my_policy, f_transition):
 	return u, x_next
 
 if __name__ == '__main__':
+	# choose case : 0 for det and 1 for stoch
+	case = 1
 
 	# define problem's values
 	g = np.array([[-3, 1, -5, 0, 19],
@@ -75,14 +77,14 @@ if __name__ == '__main__':
 	U = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 	x = (3,0)
 
-	# set the policy the the kind of transition expected (deterministic/stochastic)
-	#my_policy = policy_cst(U, "right")
-	my_policy = policy_rand(U)
-	f_transition = f_det
+	# set the POLICY the the kind of TRANSITION expected (deterministic/stochastic)
+	my_policy = policy_cst(U, "right")
+	#my_policy = policy_rand(U)
+	f_transition = [f_det, f_stoch][case]
 
 	# Iterate for 10 actions
 	print("Starting at " + str(x))
-	for t in range(10):
+	for t in range(11):
 		u, x_next = get_next(g, U, x, my_policy, f_transition)
 		print("(x_" + str(t) + " = " + str(x) +
 			", u_" + str(t) + " = " + str(u) +

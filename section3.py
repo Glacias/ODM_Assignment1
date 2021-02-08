@@ -125,6 +125,8 @@ class policy_set(cls_policy):
 		return U[self.pol_mat[x[0], x[1]]]
 
 if __name__ == '__main__':
+	# choose case : 0 for det and 1 for stoch
+	case = 0
 
 	# define problem's values
 	g = np.array([[-3, 1, -5, 0, 19],
@@ -146,8 +148,6 @@ if __name__ == '__main__':
 	# compute Q_N for all states x and actions u
 	get_min_N = True
 
-	# choose case : 0 for det and 1 for stoch
-	case = 0
 	my_MDP_eq = [MDP_eq_det(g), MDP_eq_stoch(g)][case]
 
 	Q, min_N = compute_Q_dyna(g, U, gamma, max_N, my_MDP_eq, get_min_N)
@@ -177,8 +177,6 @@ if __name__ == '__main__':
 	expected_return = [expected_ret_det, expected_ret_stoch][case]
 
 	# compute the expected returns (J)
-	J_opt = compute_J_dyna(g, U, policy_Q, gamma, min_N, expected_return)
+	J_opt = compute_J_dyna(g, U, policy_Q, gamma, max_N, expected_return)
 	print("J_N of the new policy :")
-	if get_min_N:
-		print("(with the smallest N = " + str(min_N) + ")")
 	print(J_opt)

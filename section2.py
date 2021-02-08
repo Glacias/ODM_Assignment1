@@ -2,6 +2,8 @@ import numpy as np
 import math
 from section1 import *
 
+from latexify import latexify
+
 # compute the expected return for x for t steps given all the expected returns for t-1 steps,
 # for a deterministic transition on a given policy
 def expected_ret_det(g, U, x, my_policy, gamma, J_prev):
@@ -44,6 +46,8 @@ def compute_N(gamma, Br, thresh):
 	return math.ceil(math.log(thresh * (1-gamma) / Br , gamma))
 
 if __name__ == '__main__':
+	# choose case : 0 for det and 1 for stoch
+	case = 1
 
 	# define problem's values
 	g = np.array([[-3, 1, -5, 0, 19],
@@ -56,17 +60,18 @@ if __name__ == '__main__':
 	x = (3,0)
 
 	# compute appropriate N
-	Br = g.max()
-	thresh = 1
+	Br = np.abs(g).max()
+	thresh = 0.1
 	N = compute_N(gamma, Br, thresh)
 
 	print("Chosen N : " + str(N))
 
 	# set the policy and the kind of case considered (deterministic/stochastic)
 	my_policy = policy_cst(U, "right")
-	expected_ret = expected_ret_det
+	expected_ret = [expected_ret_det, expected_ret_stoch][case]
 
 	# compute the expected returns (J)
 	J = compute_J_dyna(g, U, my_policy, gamma, N, expected_ret)
 
 	print(J)
+
