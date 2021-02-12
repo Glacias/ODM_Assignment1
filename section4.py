@@ -15,11 +15,13 @@ class MDP_eq_estimate():
 		for i in range(n_traj):
 			self._simulate_traj(g, my_policy, f_transition, size_traj, start_state)
 
+		"""
 		# 0 occurence correspond to 0 values, set to 1 to avoid division problem
 		self.occur_mat[self.occur_mat==0] = 1
 		# divide reward and transition by occurences
 		self.r_mat = np.true_divide(self.r_mat, self.occur_mat, where=(self.occur_mat != 0))
 		self.transi_mat = np.true_divide(self.transi_mat, self.occur_mat, where=(self.occur_mat != 0))
+		"""
 
 
 	def _simulate_traj(self, g, my_policy, f_transition, size_traj, start_state):
@@ -50,17 +52,33 @@ class MDP_eq_estimate():
 
 	# p(x_next | x, u)
 	def p_transi(self, x_next, x, u):
-		# get action index
+		# get action index (from action tuple)
 		u = self.U.index(u)
-		return self.transi_mat[x_next[0], x_next[1], x[0], x[1], u]
+
+		# if <state, action> pair never occured -> uniform probability
+		if self.occur_mat[x[0], x[1], u] == 0:
+			return 1 / (self.occur_mat.shape[0] * self.occur_mat.shape[1])
+		# else get prob from matrices
+		else:
+
+			return self.transi_mat[x_next[0], x_next[1], x[0], x[1], u] / self.occur_mat[x[0], x[1], u]
 
 	# r(x, u)
 	def r_state_action(self, x, u):
-		# get action index
+		# get action index (from action tuple)
 		u = self.U.index(u)
-		return self.r_mat[x[0], x[1], u]
+
+		# if <state, action> pair never occured -> ??? (0 average reward for now)
+		if self.occur_mat[x[0], x[1], u] == 0:
+			return 0
+
+		# else get average reward from matrices
+		else :
+			return self.r_mat[x[0], x[1], u] / self.occur_mat[x[0], x[1], u]
 
 if __name__ == '__main__':
+	# choose case : 0 for det and 1 for stoch
+	case = 0
 
 	# define problem's values
 	g = np.array([[-3, 1, -5, 0, 19],
@@ -73,13 +91,14 @@ if __name__ == '__main__':
 
 	# set values
 	start_state = (3,0)
-	random_policy = policy_rand(U)
-	f_transition = (f_det, f_stoch)[0]
+	my_policy = policy_rand(U)
+	#my_policy = policy_cst(U, "right")
+	f_transition = (f_det, f_stoch)[case]
 	n_traj = 10
-	size_traj = 10000
+	size_traj = 100
 
 	# estimate the MDP
-	my_MDP_eq = MDP_eq_estimate(g, U, random_policy, f_transition, n_traj, size_traj, start_state)
+	my_MDP_eq = MDP_eq_estimate(g, U, my_policy, f_transition, n_traj, size_traj, start_state)
 
 	# test
 	action = (0,1)
