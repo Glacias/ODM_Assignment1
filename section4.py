@@ -76,6 +76,20 @@ class MDP_eq_estimate():
 		else :
 			return self.r_mat[x[0], x[1], u] / self.occur_mat[x[0], x[1], u]
 
+	## NOT TESTED
+	def expected_ret_est(self, g, U, x, my_policy, gamma, J_prev):
+		u = my_policy.choose_action(x)
+
+		J_x_tot = self.r_state_action(x, u)
+
+		# average over all possible next state (ponderate with respective prob)
+		for k in range(J_prev.shape[0]):
+			for l in range(J_prev.shape[1]):
+				J_x_tot += self.p_transi((k,l), x, u) * gamma * J_prev[(k,l)]
+
+
+		return J_x_tot
+
 if __name__ == '__main__':
 	# choose case : 0 for det and 1 for stoch
 	case = 0
@@ -95,7 +109,7 @@ if __name__ == '__main__':
 	#my_policy = policy_cst(U, "right")
 	f_transition = (f_det, f_stoch)[case]
 	n_traj = 10
-	size_traj = 100
+	size_traj = 10000
 
 	# estimate the MDP
 	my_MDP_eq = MDP_eq_estimate(g, U, my_policy, f_transition, n_traj, size_traj, start_state)
@@ -131,3 +145,14 @@ if __name__ == '__main__':
 		for l in range(policy_mat.shape[1]):
 			print(instruction_arrow[policy_mat[k,l]], end="")
 		print()
+
+	# set the optimal policy and the kind of case considered (deterministic/stochastic)
+	policy_Q = policy_set(U, policy_mat)
+
+	#Recompute new with first rule for J ?
+	# --- --- --- --- ---
+
+	# compute the expected returns (J)
+	J = compute_J_dyna(g, U, policy_Q, gamma, max_N, my_MDP_eq.expected_ret_est)
+
+	print(J)

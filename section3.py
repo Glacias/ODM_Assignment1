@@ -122,7 +122,7 @@ class policy_set(cls_policy):
 		self.pol_mat = pol_mat
 
 	def choose_action(self, x):
-		return U[self.pol_mat[x[0], x[1]]]
+		return self.U[self.pol_mat[x[0], x[1]]]
 
 if __name__ == '__main__':
 	# choose case : 0 for det and 1 for stoch
