@@ -35,14 +35,15 @@ class MDP_eq_stoch(MDP_eq):
 
 		# p(x_next | x, u) of the equivalent MDP of the domain stochastic
 		def p_transi(self, x_next, x, u):
+			prob = 0
+
 			if x_next == (0,0):
-				return 0.5
+				prob += 0.5
 
-			elif x_next == f_det(x, u, self.g.shape):
-				return 0.5
+			if x_next == f_det(x, u, self.g.shape):
+				prob += 0.5
 
-			else:
-				return 0
+			return prob
 
 		# r(x, u) of the equivalent MDP of the domain stochastic
 		def r_state_action(self, x, u):

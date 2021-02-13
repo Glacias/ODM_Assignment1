@@ -4,7 +4,7 @@ from section1 import *
 from section2 import *
 from section3 import *
 
-class MDP_eq_estimate():
+class MDP_eq_estimate(MDP_eq):
 	def __init__(self, g, U, my_policy, f_transition, n_traj, size_traj, start_state):
 		self.U = U
 		self.r_mat = np.zeros(g.shape + (len(U),))
@@ -34,12 +34,12 @@ class MDP_eq_estimate():
 			r = g[x_next]
 
 			# get action index
-			u = self.U.index(u)
+			u_idx = self.U.index(u)
 
 			# fill matrices
-			self.r_mat[x[0], x[1], u] += r
-			self.occur_mat[x[0], x[1], u] += 1
-			self.transi_mat[x_next[0], x_next[1], x[0], x[1], u] += 1
+			self.r_mat[x[0], x[1], u_idx] += r
+			self.occur_mat[x[0], x[1], u_idx] += 1
+			self.transi_mat[x_next[0], x_next[1], x[0], x[1], u_idx] += 1
 
 			x = x_next
 
@@ -60,21 +60,20 @@ class MDP_eq_estimate():
 			return 1 / (self.occur_mat.shape[0] * self.occur_mat.shape[1])
 		# else get prob from matrices
 		else:
-
 			return self.transi_mat[x_next[0], x_next[1], x[0], x[1], u] / self.occur_mat[x[0], x[1], u]
 
 	# r(x, u)
 	def r_state_action(self, x, u):
 		# get action index (from action tuple)
-		u = self.U.index(u)
+		u_idx = self.U.index(u)
 
 		# if <state, action> pair never occured -> ??? (0 average reward for now)
-		if self.occur_mat[x[0], x[1], u] == 0:
+		if self.occur_mat[x[0], x[1], u_idx] == 0:
 			return 0
 
 		# else get average reward from matrices
 		else :
-			return self.r_mat[x[0], x[1], u] / self.occur_mat[x[0], x[1], u]
+			return self.r_mat[x[0], x[1], u_idx] / self.occur_mat[x[0], x[1], u_idx]
 
 	## NOT TESTED
 	def expected_ret_est(self, g, U, x, my_policy, gamma, J_prev):
