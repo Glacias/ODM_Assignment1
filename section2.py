@@ -2,8 +2,6 @@ import numpy as np
 import math
 from section1 import *
 
-from latexify import latexify
-
 # compute the expected return for x for t steps given all the expected returns for t-1 steps,
 # for a deterministic transition on a given policy
 def expected_ret_det(g, U, x, my_policy, gamma, J_prev):
