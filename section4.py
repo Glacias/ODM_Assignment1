@@ -268,7 +268,7 @@ if __name__ == '__main__':
 	J_opt_orig = compute_J_dyna(g, U, policy_Q_orig, gamma, N_J, expected_return_orig)
 	print("J_N of the original MDP (N = {}) :".format(N_J))
 	print(J_opt_orig)
-	J_opt_est = compute_J_dyna(g, U, policy_Q_est, gamma, N_J, est_MDP.expected_ret_est)
+	J_opt_est = compute_J_dyna(g, U, policy_Q_est, gamma, N_J, expected_return_orig)
 	print("J_N of the estimate MDP (N = {}) :".format(N_J))
 	print(J_opt_est)
 
