@@ -82,19 +82,6 @@ class MDP_eq_estimate(MDP_eq):
 		else :
 			return self.r_mat[x[0], x[1], u_idx] / self.occur_mat[x[0], x[1], u_idx]
 
-	## NOT TESTED
-	def expected_ret_est(self, g, U, x, my_policy, gamma, J_prev):
-		u = my_policy.choose_action(x)
-
-		J_x_tot = self.r_state_action(x, u)
-
-		# average over all possible next state (ponderate with respective prob)
-		for k in range(J_prev.shape[0]):
-			for l in range(J_prev.shape[1]):
-				J_x_tot += self.p_transi((k,l), x, u) * gamma * J_prev[(k,l)]
-
-
-		return J_x_tot
 
 
 def compare_p(U, map_shape, MDP_original, MDP_est):
@@ -146,7 +133,7 @@ def compare_Q(g, U, gamma, N, map_shape, MDP_original, MDP_est):
 
 if __name__ == '__main__':
 	# choose case : 0 for det and 1 for stoch
-	case = 0
+	case = 1
 
 	# define problem's values
 	g = np.array([[-3, 1, -5, 0, 19],
@@ -193,7 +180,7 @@ if __name__ == '__main__':
 	p_conv.append(compare_p(U, g.shape, original_MDP, est_MDP))
 	print("Comparing r ...")
 	r_conv.append(compare_r(U, g.shape, original_MDP, est_MDP))
-	print("Comparing q ...")
+	print("Comparing q ....")
 	Q_conv.append(compare_Q(g, U, gamma, N_Q, g.shape, original_MDP, est_MDP))
 
 
@@ -210,21 +197,26 @@ if __name__ == '__main__':
 		p_conv.append(compare_p(U, g.shape, original_MDP, est_MDP))
 		print("Comparing r ...")
 		r_conv.append(compare_r(U, g.shape, original_MDP, est_MDP))
-		print("Comparing q ...")
+		print("Comparing q ....")
 		Q_conv.append(compare_Q(g, U, gamma, N_Q, g.shape, original_MDP, est_MDP))
 
-	fig, axs = plt.subplots(3, sharex=True)
+	fig, axs = plt.subplots(2, sharex=True)
+	fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+	fig.suptitle(r'$L_\infty$')
 	plt.xscale("log")
 	axs[0].plot(traj_sizes, p_conv)
-	axs[0].set_title("Convergence of p")
 	axs[0].set_ylim(bottom=0)
+	axs[0].set(ylabel=r'$\hat{p} - p$')
 	axs[1].plot(traj_sizes, r_conv)
-	axs[1].set_title("Convergence of r")
 	axs[1].set_ylim(bottom=0)
-	axs[2].plot(traj_sizes, Q_conv)
-	axs[2].set_title("Convergence of Q")
-	axs[2].set_ylim(bottom=0)
+	axs[1].set(xlabel='trajectory length' ,ylabel=r'$\hat{r} - r$')
 	plt.show()
+
+	print()
+	print("length considered :")
+	print(traj_sizes)
+	print("Infinity norm of the difference between Q and Q hat :")
+	print(Q_conv)
 
 	print()
 	### OPTIMAL POLICY FOR THE ESTIMATE
@@ -268,55 +260,7 @@ if __name__ == '__main__':
 	J_opt_orig = compute_J_dyna(g, U, policy_Q_orig, gamma, N_J, expected_return_orig)
 	print("J_N of the original MDP (N = {}) :".format(N_J))
 	print(J_opt_orig)
+	# NB which expected return to use for mu^? (original or estimated)
 	J_opt_est = compute_J_dyna(g, U, policy_Q_est, gamma, N_J, expected_return_orig)
 	print("J_N of the estimate MDP (N = {}) :".format(N_J))
 	print(J_opt_est)
-
-
-	"""
-	# estimate the MDP
-	my_MDP_eq = MDP_eq_estimate(g, U, my_policy, f_transition, n_traj, size_traj, start_state)
-
-	# test
-	action = (0,1)
-
-	print(my_MDP_eq.p_transi((2,3), (2,2), action))
-	print(my_MDP_eq.r_state_action((2,2), action))
-
-	# compute N expected large enough
-	Br = g.max()
-	thresh = 0.1
-	max_N = compute_N_bis(gamma, Br, thresh)
-	print("Chosen N : " + str(max_N))
-	print()
-
-	# Q approximate
-	Q, _ = compute_Q_dyna(g, U, gamma, max_N, my_MDP_eq)
-	print("Estimation Q_N function (u, x) :")
-	# move axis such that Q is displayed by action u on the first axis
-	print(np.moveaxis(Q, 2, 0))
-	print()
-
-	# derive a policy from the Q_N matrix
-	print("policy :")
-	policy_mat = get_optimal_pol_mat(Q)
-
-	# display policy with arrow
-	#instruction = ["down  ", "up    ", "right ", "left  "]
-	instruction_arrow = ['\u2193', '\u2191', '\u2192', '\u2190']
-	for k in range(policy_mat.shape[0]):
-		for l in range(policy_mat.shape[1]):
-			print(instruction_arrow[policy_mat[k,l]], end="")
-		print()
-
-	# set the optimal policy and the kind of case considered (deterministic/stochastic)
-	policy_Q = policy_set(U, policy_mat)
-
-	#Recompute new with first rule for J ?
-	# --- --- --- --- ---
-
-	# compute the expected returns (J)
-	J = compute_J_dyna(g, U, policy_Q, gamma, max_N, my_MDP_eq.expected_ret_est)
-
-	print(J)
-	"""
