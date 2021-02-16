@@ -198,7 +198,7 @@ class Online_Q_learning_v4():
 			# Compute infinite norm
 			self.gap_to_opti[i] = np.abs(self.Q.max(axis=2) - J_opt).max()
 			# Reset epsilon_g
-			#self.epsilon_g = epsilon_g
+			self.epsilon_g = epsilon_g
 
 	def _simulate_traj(self, g, f_transition, size_traj, start_state, learning_rate, gamma):
 		x = start_state
@@ -229,7 +229,7 @@ class Online_Q_learning_v4():
 		x_next = f_transition(x, u, map_shape)
 
 		# Decaying epsilon_g
-		self.epsilon_g = 0.9999*self.epsilon_g
+		self.epsilon_g = 0.9*self.epsilon_g
 		#print(self.epsilon_g)
 
 		return u, x_next
@@ -246,7 +246,7 @@ if __name__ == '__main__':
 				[6, -9, 4, 19, -5],
 				[-20, -17, -4, -3, 9]])
 	U = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-	gamma = 0.99
+	gamma = 0.4
 
 	# set values
 	start_state = (3,0)
@@ -324,9 +324,12 @@ if __name__ == '__main__':
 
 	# Graph of the infinite norm
 	plt.plot(range(0,n_traj), on_Q_learn_v1.gap_to_opti)
-	plt.title('First protocol')
+	if case == 0:
+		plt.title('First protocol (deterministic)')
+	else:
+		plt.title('First protocol (stochastic)')
 	plt.xlabel('Number of episode')
-	plt.ylabel('Infinite norm')
+	plt.ylabel('$\|\| \hat{Q} - J^{\mu^*_N}_N \|\|_\infty$')
 	plt.show()
 
 
@@ -365,7 +368,10 @@ if __name__ == '__main__':
 
 	# Graph of the infinite norm
 	plt.plot(range(0,n_traj), on_Q_learn_v2.gap_to_opti)
-	plt.title('Second protocol')
+	if case == 0:
+		plt.title('Second protocol (deterministic)')
+	else:
+		plt.title('Second protocol (stochastic)')
 	plt.xlabel('Number of episode')
 	plt.ylabel('Infinite norm')
 	plt.show()
@@ -406,9 +412,12 @@ if __name__ == '__main__':
 
 	# Graph of the infinite norm
 	plt.plot(range(0,n_traj), on_Q_learn_v3.gap_to_opti)
-	plt.title('Third protocol')
+	if case == 0:
+		plt.title('Third protocol (deterministic)')
+	else:
+		plt.title('Third protocol (stochastic)')
 	plt.xlabel('Number of episode')
-	plt.ylabel('Infinite norm')
+	plt.ylabel('$\|\| \hat{Q} - J^{\mu^*_N}_N \|\|_\infty$')
 	plt.show()
 
 
@@ -452,7 +461,10 @@ if __name__ == '__main__':
 
 	# Graph of the infinite norm
 	plt.plot(range(0,n_traj), on_Q_learn_v4.gap_to_opti)
-	plt.title('Fourth protocol')
+	if case == 0:
+		plt.title('Fourth protocol (deterministic)')
+	else:
+		plt.title('Fourth protocol (stochastic)')
 	plt.xlabel('Number of episode')
 	plt.ylabel('Infinite norm')
 	plt.show()
