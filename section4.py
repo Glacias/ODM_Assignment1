@@ -133,7 +133,7 @@ def compare_Q(g, U, gamma, N, map_shape, MDP_original, MDP_est):
 
 if __name__ == '__main__':
 	# choose case : 0 for det and 1 for stoch
-	case = 0
+	case = 1
 
 	# define problem's values
 	g = np.array([[-3, 1, -5, 0, 19],
